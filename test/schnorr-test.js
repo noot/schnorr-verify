@@ -75,7 +75,7 @@ describe("Schnorr", function () {
     var pre = preprocessSig(m, sig.R, sig.s, px);
 
     let gas = await schnorr.estimateGas.verify(
-    pre.sr,
+      pre.sr,
       pre.er,
       publicKey.slice(1, 33),
       publicKey[0] - 2 + 27,
