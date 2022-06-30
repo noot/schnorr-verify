@@ -7,15 +7,15 @@ const secp256k1 = require('secp256k1')
 
 const arrayify = ethers.utils.arrayify;
 
-function sign(m, x) {
+function sign(m, x, chainId) {
   var publicKey = secp256k1.publicKeyCreate(x);
 
   // R = G * k
   var k = randomBytes(32);
   var R = secp256k1.publicKeyCreate(k);
 
-  // e = h(address(R) || m)
-  var e = challenge(R, m);
+  // e = h(address(R) || compressed pubkey || chainId || m)
+  var e = challenge(R, m, publicKey, chainId);
 
   // xe = x * e
   var xe = secp256k1.privateKeyTweakMul(x, e);
@@ -25,23 +25,25 @@ function sign(m, x) {
   return {R, s, e};
 }
 
-function challenge(R, m) {
+function challenge(R, m, publicKey, chainId) {
   // convert R to address
   // see https://github.com/ethereum/go-ethereum/blob/eb948962704397bb861fd4c0591b5056456edd4d/crypto/crypto.go#L275
   var R_uncomp = secp256k1.publicKeyConvert(R, false);
   var R_addr = arrayify(ethers.utils.keccak256(R_uncomp.slice(1, 65))).slice(12, 32);
 
-  // e = keccak256(address(R) || m)
+  // e = keccak256(address(R) || compressed publicKey || chainId || m)
   var e = arrayify(ethers.utils.solidityKeccak256(
-      ["address", "uint256"],
-      [R_addr, m]));
+      ["address", "uint8", "bytes32", "uint256", "bytes32"],
+      [R_addr, publicKey[0] + 27 - 2, publicKey.slice(1, 33), chainId, m]));
 
   return e;
 }
 
-function preprocessSig(m, R, s, px) {
+function preprocessSig(m, R, s, publicKey, chainId) {
+  var px = publicKey.slice(1, 33);
+
   // pre-process for contract
-  var e = challenge(R, m);
+  var e = challenge(R, m, publicKey, chainId);
 
   // px = x-coordinate of public key
   // s' = -s*px
@@ -59,6 +61,10 @@ describe("Schnorr", function () {
     const schnorr = await Schnorr.deploy();
     await schnorr.deployed();
 
+    let provider = ethers.getDefaultProvider("http://localhost:8545");
+    let network =  await provider.getNetwork();
+    const chainId = network.chainId;
+
     // generate privKey
     let privKey
     do {
@@ -66,13 +72,12 @@ describe("Schnorr", function () {
     } while (!secp256k1.privateKeyVerify(privKey))
 
     var publicKey = secp256k1.publicKeyCreate(privKey);
-    var px = publicKey.slice(1, 33);
 
     // message 
     var m = randomBytes(32);
 
-    var sig = sign(m, privKey);
-    var pre = preprocessSig(m, sig.R, sig.s, px);
+    var sig = sign(m, privKey, chainId);
+    var pre = preprocessSig(m, sig.R, sig.s, publicKey, chainId);
 
     let gas = await schnorr.estimateGas.verify(
       pre.sr,
