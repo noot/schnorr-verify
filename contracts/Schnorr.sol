@@ -10,6 +10,7 @@ contract Schnorr {
     // e := schnorr signature challenge
     function verify(bytes32 sr, bytes32 er, bytes32 px, uint8 parity, bytes32 message, bytes32 e) public pure returns (bool) {
         // ecrecover = (m, v, r, s);
+        require(sr != 0);
         address q = ecrecover(sr, parity, px, er);
         return e == keccak256(abi.encodePacked(q, message));
     }
