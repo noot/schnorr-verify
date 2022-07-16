@@ -13,9 +13,8 @@ contract Schnorr {
     function verify(bytes32 s, bytes32 px, uint8 parity, bytes32 message, bytes32 e) public view returns (bool) {
         // ecrecover = (m, v, r, s);
         bytes32 sr = bytes32(Q - mulmod(uint256(s), uint256(px), Q));
-        bytes32 er = bytes32(Q - mulmod(uint256(e), uint256(px), Q));
-
         require(sr != 0);
+        bytes32 er = bytes32(Q - mulmod(uint256(e), uint256(px), Q));
         // the ecrecover precompile implementation checks that the `r` and `s` inputs are non-zero
         // (in this case, `px` and `er`), thus we don't need to check if they're zero.
         address q = ecrecover(sr, parity, px, er);
