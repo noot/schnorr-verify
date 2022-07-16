@@ -39,22 +39,6 @@ function challenge(R, m, publicKey, chainId) {
   return e;
 }
 
-function preprocessSig(m, R, s, publicKey, chainId) {
-  var px = publicKey.slice(1, 33);
-
-  // pre-process for contract
-  var e = challenge(R, m, publicKey, chainId);
-
-  // px = x-coordinate of public key
-  // s' = -s*px
-  // e' = -e*px
-  var sr = secp256k1.privateKeyTweakMul(s, px);
-  sr = secp256k1.privateKeyNegate(sr);
-  var er = secp256k1.privateKeyTweakMul(e, px);
-  er = secp256k1.privateKeyNegate(er);
-  return {sr, er};
-}
-
 describe("Schnorr", function () {
   it("Should verify a signature", async function () {
     const Schnorr = await ethers.getContractFactory("Schnorr");
@@ -77,11 +61,9 @@ describe("Schnorr", function () {
     var m = randomBytes(32);
 
     var sig = sign(m, privKey, chainId);
-    var pre = preprocessSig(m, sig.R, sig.s, publicKey, chainId);
 
     let gas = await schnorr.estimateGas.verify(
-      pre.sr,
-      pre.er,
+      sig.s,
       publicKey.slice(1, 33),
       publicKey[0] - 2 + 27,
       arrayify(m),
@@ -90,8 +72,7 @@ describe("Schnorr", function () {
     console.log("verify gas cost:", gas);
 
     expect(await schnorr.verify(
-      pre.sr,
-      pre.er,
+      sig.s,
       publicKey.slice(1, 33),
       publicKey[0] - 2 + 27,
       arrayify(m),
