@@ -5,14 +5,13 @@ contract Schnorr {
     // secp256k1 group order
     uint256 constant public Q = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141;
 
-    // sr := -s*P_x
-    // er := -e*P_x
+    // s := schnorr signature 
     // px := public key x-coord
     // parity := public key y-coord parity (27 or 28)
     // message := 32-byte message
     // e := schnorr signature challenge
     function verify(bytes32 s, bytes32 px, uint8 parity, bytes32 message, bytes32 e) public view returns (bool) {
-        // ecrecover = (m, v, r, s);🥹
+        // ecrecover = (m, v, r, s);
         bytes32 sr = bytes32(Q - mulmod(uint256(s), uint256(px), Q));
         bytes32 er = bytes32(Q - mulmod(uint256(e), uint256(px), Q));
 
