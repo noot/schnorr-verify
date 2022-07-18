@@ -10,7 +10,7 @@ contract Schnorr {
     // parity := public key y-coord parity (27 or 28)
     // message := 32-byte message
     // e := schnorr signature challenge
-    function verify(bytes32 s, bytes32 px, uint8 parity, bytes32 message, bytes32 e) public view returns (bool) {
+    function verify(uint8 parity, bytes32 px, bytes32 message, bytes32 s, bytes32 e) public view returns (bool) {
         // ecrecover = (m, v, r, s);
         bytes32 sr = bytes32(Q - mulmod(uint256(s), uint256(px), Q));
         require(sr != 0, "invalid -s*p_x value");

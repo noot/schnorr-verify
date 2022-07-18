@@ -63,19 +63,19 @@ describe("Schnorr", function () {
     var sig = sign(m, privKey, chainId);
 
     let gas = await schnorr.estimateGas.verify(
-      sig.s,
-      publicKey.slice(1, 33),
       publicKey[0] - 2 + 27,
+      publicKey.slice(1, 33),
       arrayify(m),
+      sig.s,
       sig.e,
     )
     console.log("verify gas cost:", gas);
 
     expect(await schnorr.verify(
-      sig.s,
-      publicKey.slice(1, 33),
       publicKey[0] - 2 + 27,
+      publicKey.slice(1, 33),
       arrayify(m),
+      sig.s,
       sig.e,
     )).to.equal(true);
   });
