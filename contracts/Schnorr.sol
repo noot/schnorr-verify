@@ -17,7 +17,7 @@ contract Schnorr {
     bytes32 message,
     bytes32 e,
     bytes32 s
-  ) public view returns (bool) {
+  ) public pure returns (bool) {
     // ecrecover = (m, v, r, s);
     bytes32 sp = bytes32(Q - mulmod(uint256(s), uint256(px), Q));
     bytes32 ep = bytes32(Q - mulmod(uint256(e), uint256(px), Q));
@@ -29,7 +29,7 @@ contract Schnorr {
     address R = ecrecover(sp, parity, px, ep);
     require(R != address(0), "ecrecover failed");
     return e == keccak256(
-      abi.encodePacked(R, uint8(parity), px, block.chainid, message)
+      abi.encodePacked(R, uint8(parity), px, message)
     );
   }
 }

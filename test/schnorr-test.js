@@ -7,15 +7,15 @@ const secp256k1 = require('secp256k1')
 
 const arrayify = ethers.utils.arrayify;
 
-function sign(m, x, chainId) {
+function sign(m, x) {
   var publicKey = secp256k1.publicKeyCreate(x);
 
   // R = G * k
   var k = randomBytes(32);
   var R = secp256k1.publicKeyCreate(k);
 
-  // e = h(address(R) || compressed pubkey || chainId || m)
-  var e = challenge(R, m, publicKey, chainId);
+  // e = h(address(R) || compressed pubkey || m)
+  var e = challenge(R, m, publicKey);
 
   // xe = x * e
   var xe = secp256k1.privateKeyTweakMul(x, e);
@@ -25,16 +25,16 @@ function sign(m, x, chainId) {
   return {R, s, e};
 }
 
-function challenge(R, m, publicKey, chainId) {
+function challenge(R, m, publicKey) {
   // convert R to address
   // see https://github.com/ethereum/go-ethereum/blob/eb948962704397bb861fd4c0591b5056456edd4d/crypto/crypto.go#L275
   var R_uncomp = secp256k1.publicKeyConvert(R, false);
   var R_addr = arrayify(ethers.utils.keccak256(R_uncomp.slice(1, 65))).slice(12, 32);
 
-  // e = keccak256(address(R) || compressed publicKey || chainId || m)
+  // e = keccak256(address(R) || compressed publicKey || m)
   var e = arrayify(ethers.utils.solidityKeccak256(
-      ["address", "uint8", "bytes32", "uint256", "bytes32"],
-      [R_addr, publicKey[0] + 27 - 2, publicKey.slice(1, 33), chainId, m]));
+      ["address", "uint8", "bytes32", "bytes32"],
+      [R_addr, publicKey[0] + 27 - 2, publicKey.slice(1, 33), m]));
 
   return e;
 }
@@ -44,10 +44,6 @@ describe("Schnorr", function () {
     const Schnorr = await ethers.getContractFactory("Schnorr");
     const schnorr = await Schnorr.deploy();
     await schnorr.deployed();
-
-    let provider = ethers.getDefaultProvider("http://localhost:8545");
-    let network =  await provider.getNetwork();
-    const chainId = network.chainId;
 
     // generate privKey
     let privKey
@@ -60,7 +56,7 @@ describe("Schnorr", function () {
     // message 
     var m = randomBytes(32);
 
-    var sig = sign(m, privKey, chainId);
+    var sig = sign(m, privKey);
 
     let gas = await schnorr.estimateGas.verify(
       publicKey[0] - 2 + 27,

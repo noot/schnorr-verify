@@ -2,7 +2,7 @@
 
 This repo contains a contract `Schnorr.sol` which verifies a Schnorr signature using only `ecrecover` and `keccak256`. 
 
-Total gas cost: `29914`
+Total gas cost: `29743`
 
 ### How it works
 
