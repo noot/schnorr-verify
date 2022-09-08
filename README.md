@@ -1,6 +1,6 @@
 # Optimized Schnorr verification contract
 
-This repo contains a contract `Schnorr.sol` which verifies a (modified) Schnorr signature using only `ecrecover` and `keccak256`. 
+This repo contains a contract `Schnorr.sol` which verifies a Schnorr signature using only `ecrecover` and `keccak256`. 
 
 Total gas cost: `29914`
 
