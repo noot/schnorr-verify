@@ -66,8 +66,8 @@ describe("Schnorr", function () {
       publicKey[0] - 2 + 27,
       publicKey.slice(1, 33),
       arrayify(m),
-      sig.s,
       sig.e,
+      sig.s,
     )
     console.log("verify gas cost:", gas);
 
@@ -75,8 +75,8 @@ describe("Schnorr", function () {
       publicKey[0] - 2 + 27,
       publicKey.slice(1, 33),
       arrayify(m),
-      sig.s,
       sig.e,
+      sig.s,
     )).to.equal(true);
   });
 });
